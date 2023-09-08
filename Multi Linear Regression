@@ -1,1 +1,57 @@
+data <-read.csv("plant_growth_data.csv",header = TRUE)
+head(data)
+
+# Fit the multiple linear regression model
+model <- lm(growth_rate ~ sunlight_exposure + soil_ph + precipitation + average_temperature, data = data)
+
+# Print the summary of the model
+summary(model)
+
+# Assess assumptions of the linear model
+# 1. Check for multicollinearity using variance inflation factor (VIF)
+library(car)
+vif(model)
+
+# 2. Check for normality of residuals
+residuals <- residuals(model)
+
+shapiro.test(residuals)
+# 3. Check for homoscedasticity (constant variance)
+plot(model, which = 1)
+
+# Interpret and present the coefficients and their statistical significance
+library(knitr)
+# Create a data frame with the coefficients
+coefficients <- coef(summary(model))
+coefficients_df <- data.frame(
+  Variable = rownames(coefficients),
+  Estimate = coefficients[, "Estimate"],
+  Std_Error = coefficients[, "Std. Error"],
+  t_value = coefficients[, "t value"],
+  p_value = coefficients[, "Pr(>|t|)"]
+)
+
+# Print the coefficients table
+kable(coefficients_df, caption = "Coefficients and their Statistical Significance") 
+
+
+# Visualize the relationships between variables using graphs or charts
+# Scatter plot of growth rate vs. sunlight exposure
+plot(data$sunlight_exposure, data$growth_rate, xlab = "Sunlight Exposure", ylab = "Growth Rate", main = "Relationship between Sunlight Exposure and Growth Rate")
+
+# Scatter plot matrix for all variables
+library(GGally)
+ggpairs(data, columns = 2:6)
+
+
+# Bar plot: Average Growth Rate by Soil pH
+barplot(tapply(data$growth_rate, data$soil_ph, mean),
+        xlab = "Soil pH", ylab = "Average Growth Rate",
+        main = "Average Growth Rate by Soil pH", col = "lightblue")
+
+# Heatmap: Correlation between Variables
+correlation_matrix <- cor(data[, c("growth_rate", "sunlight_exposure", "soil_ph", "precipitation", "average_temperature")])
+heatmap(correlation_matrix, col = colorRampPalette(c("#4575B4", "#FFFFFF", "#D45050"))(100),
+        main = "Correlation between Variables", xlab = "", ylab = "")
+
 
